@@ -88,10 +88,24 @@ class ControllerApiCustomer extends Controller {
 				);
 
 				$json['success'] = $this->language->get('text_success');
+
 			}
 		}
 		
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
+        public function dump() {
+            $this->load->language('api/shipping');
+            if (!isset($this->session->data['api_id'])) {
+                    $json['error']['warning'] = $this->language->get('error_permission');
+                } else {
+                    $this->response->addHeader('Content-Type: application/json');
+                    $json['success'] = $this->language->get('text_dump');
+                    $sessionData =  $this->session->data;
+                    $output = $sessionData;
+                    $this->response->setOutput(json_encode($json));
+            }
+
+        }
 }

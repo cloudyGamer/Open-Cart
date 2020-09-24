@@ -1,5 +1,10 @@
 <?php
+require_once DIR_STORAGE."vendor/autoload.php";
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
 class ControllerCheckoutCart extends Controller {
+
 	public function index() {
 		$this->load->language('checkout/cart');
 
@@ -259,13 +264,22 @@ class ControllerCheckoutCart extends Controller {
 		}
 	}
 
-	public function add() {
+	public function add() {	
+        $pp_order = new Logger('checkout/cart/add');
+		// Now add some handlers
+		$pp_order->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+		$pp_order->pushHandler(new FirePHPHandler());
+
+        $pp_order->info('ran');
+		
+
 		$this->load->language('checkout/cart');
 
 		$json = array();
 
 		if (isset($this->request->post['product_id'])) {
 			$product_id = (int)$this->request->post['product_id'];
+			$pp_order->info('product_id'.$product_id);
 		} else {
 			$product_id = 0;
 		}
@@ -442,7 +456,6 @@ class ControllerCheckoutCart extends Controller {
 			// Display prices
 			if ($this->customer->isLogged() || !$this->config->get('config_customer_price')) {
 				$sort_order = array();
-
 				$results = $this->model_setting_extension->getExtensions('total');
 
 				foreach ($results as $key => $value) {

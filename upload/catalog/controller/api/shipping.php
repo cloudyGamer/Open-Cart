@@ -15,6 +15,8 @@ class ControllerApiShipping extends Controller {
 				$json['error']['warning'] = $this->language->get('error_permission');
 			} else {
 				// Add keys for missing post vars
+				//copying and modifying this part of the code to check if it responsible for wiping customer details
+				//ORIGINAL:
 				$keys = array(
 					'firstname',
 					'lastname',
@@ -26,6 +28,7 @@ class ControllerApiShipping extends Controller {
 					'zone_id',
 					'country_id'
 				);
+        
 
 				foreach ($keys as $key) {
 					if (!isset($this->request->post[$key])) {
@@ -108,7 +111,7 @@ class ControllerApiShipping extends Controller {
 						$zone = '';
 						$zone_code = '';
 					}
-
+//session data stored here
 					$this->session->data['shipping_address'] = array(
 						'firstname'      => $this->request->post['firstname'],
 						'lastname'       => $this->request->post['lastname'],
@@ -127,19 +130,21 @@ class ControllerApiShipping extends Controller {
 						'address_format' => $address_format,
 						'custom_field'   => isset($this->request->post['custom_field']) ? $this->request->post['custom_field'] : array()
 					);
-
+  
 					$json['success'] = $this->language->get('text_address');
-
+                   
 					unset($this->session->data['shipping_method']);
 					unset($this->session->data['shipping_methods']);
 				}
 			}
-		}
-		
+                //addition 1 
+		} else {$json['error']['warning'] = $this->language->get('error_cart');}
+		// *addition 1
 		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
+		//addition 4
+		$this->response->setOutput(json_encode($json)); 
 	}
-
+  
 	public function methods() {
 		$this->load->language('api/shipping');
 
@@ -150,7 +155,7 @@ class ControllerApiShipping extends Controller {
 		$json = array();
 
 		if (!isset($this->session->data['api_id'])) {
-			$json['error'] = $this->language->get('error_permission');
+			$json['error']['warning'] = $this->language->get('error_permission');
 		} elseif ($this->cart->hasShipping()) {
 			if (!isset($this->session->data['shipping_address'])) {
 				$json['error'] = $this->language->get('error_address');
@@ -194,13 +199,17 @@ class ControllerApiShipping extends Controller {
 				} else {
 					$json['error'] = $this->language->get('error_no_shipping');
 				}
-			}
+			}//
 		} else {
 			$json['shipping_methods'] = array();
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
+		/* addition 1 */
+
+		$output = $this->session->data;
+		$this->response->setOutput(json_encode($output));
+		/* addition 1 */
 	}
 
 	public function method() {

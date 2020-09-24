@@ -34,7 +34,7 @@ class ControllerApiLogin extends Controller {
 				$session = new Session($this->config->get('session_engine'), $this->registry);
 				
 				$session->start();
-				
+				//where a new api session is set
 				$this->model_account_api->addApiSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
 				
 				$session->data['api_id'] = $api_info['api_id'];

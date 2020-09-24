@@ -1,6 +1,18 @@
 <?php
+require_once DIR_STORAGE."vendor/autoload.php";
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
+
 class ControllerApiCart extends Controller {
-	public function add() {
+    public function add() {
+
+        $pp_order = new Logger('api/cart/add');
+        // Now add some handlers
+        $pp_order->pushHandler(new StreamHandler('{file path}/upload/app.log', Logger::DEBUG));
+        $pp_order->pushHandler(new FirePHPHandler());
+        $pp_order->info('ran');
+
 		$this->load->language('api/cart');
 
 		$json = array();
@@ -17,7 +29,7 @@ class ControllerApiCart extends Controller {
 					} else {
 						$option = array();
 					}
-
+                                        $pp_order->info('this->cart->add($product[product_id], product[quantity], option);');
 					$this->cart->add($product['product_id'], $product['quantity'], $option);
 				}
 
@@ -29,7 +41,7 @@ class ControllerApiCart extends Controller {
 				unset($this->session->data['payment_methods']);
 			} elseif (isset($this->request->post['product_id'])) {
 				$this->load->model('catalog/product');
-
+                                $pp_order->info('elseif isset post[product_id]=');
 				$product_info = $this->model_catalog_product->getProduct($this->request->post['product_id']);
 
 				if ($product_info) {
@@ -54,6 +66,9 @@ class ControllerApiCart extends Controller {
 					}
 
 					if (!isset($json['error']['option'])) {
+							$pp_order->info('!isset($json[error][option]'.__Line__);
+							//this is where it is sent on but checkout/cart doesnt show up in logs. Is it sending
+							//it back to its self? - no
 						$this->cart->add($this->request->post['product_id'], $quantity, $option);
 
 						$json['success'] = $this->language->get('text_success');
@@ -97,6 +112,12 @@ class ControllerApiCart extends Controller {
 	}
 
 	public function remove() {
+		$remove_logger = new Logger('api/cart/remove');
+		// Now add some handlers
+		$remove_logger->pushHandler(new StreamHandler('{file path}/upload/app.log', Logger::DEBUG));
+		$remove_logger->pushHandler(new FirePHPHandler());
+
+                $remove_logger->info('ran');
 		$this->load->language('api/cart');
 
 		$json = array();
@@ -106,11 +127,14 @@ class ControllerApiCart extends Controller {
 		} else {
 			// Remove
 			if (isset($this->request->post['key'])) {
+				$remove_logger->info('recieved key  '.$this->request->post['key']);
+
 				$this->cart->remove($this->request->post['key']);
 
 				unset($this->session->data['vouchers'][$this->request->post['key']]);
 
 				$json['success'] = $this->language->get('text_success');
+                $remove_logger->info('success message  '.$json['success']);
 
 				unset($this->session->data['shipping_method']);
 				unset($this->session->data['shipping_methods']);
@@ -122,6 +146,8 @@ class ControllerApiCart extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+		//$this->response->setOutput(json_encode("handmade responses. Made in Ireland."));
+
 	}
 
 	public function products() {
@@ -204,7 +230,6 @@ class ControllerApiCart extends Controller {
 
 			// Totals
 			$this->load->model('setting/extension');
-
 			$totals = array();
 			$taxes = $this->cart->getTaxes();
 			$total = 0;

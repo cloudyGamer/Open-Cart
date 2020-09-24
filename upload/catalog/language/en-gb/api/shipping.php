@@ -1,10 +1,16 @@
 <?php
 // Text
 $_['text_address']       = 'Success: Shipping address has been set!';
+//addition 1//
+$_['text_dump']       = 'Success: you have dumped session data!';
+//addition 1//
 $_['text_method']        = 'Success: Shipping method has been set!';
 
 // Error
 $_['error_permission']   = 'Warning: You do not have permission to access the API!';
+//addition 1
+$_['error_cart']   = 'Warning: Your cart is empty!';
+//*addition 1
 $_['error_firstname']    = 'First Name must be between 1 and 32 characters!';
 $_['error_lastname']     = 'Last Name must be between 1 and 32 characters!';
 $_['error_address_1']    = 'Address 1 must be between 3 and 128 characters!';

@@ -1,4 +1,9 @@
 <?php
+require_once DIR_STORAGE."vendor/autoload.php";
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
+
 class ControllerCheckoutGuest extends Controller {
 	public function index() {
 		$this->load->language('checkout/checkout');
@@ -141,6 +146,13 @@ class ControllerCheckoutGuest extends Controller {
 	}
 
 	public function save() {
+		$pp_order = new Logger('checkout/guest/save_logger'.__Line__);
+                // Now add some handlers
+                $pp_order->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+                $pp_order->pushHandler(new FirePHPHandler());
+
+                $pp_order->info('checkout/guest/save ran');
+
 		$this->load->language('checkout/checkout');
 
 		$json = array();
@@ -161,6 +173,7 @@ class ControllerCheckoutGuest extends Controller {
 		}
 
 		if (!$json) {
+			$pp_order->info('checkout/guest/save_  if(!$json)'.__Line__);
 			if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 				$json['error']['firstname'] = $this->language->get('error_firstname');
 			}
@@ -204,6 +217,7 @@ class ControllerCheckoutGuest extends Controller {
 
 			// Customer Group
 			if (isset($this->request->post['customer_group_id']) && is_array($this->config->get('config_customer_group_display')) && in_array($this->request->post['customer_group_id'], $this->config->get('config_customer_group_display'))) {
+				$pp_order->info('customer group found'.__Line__);
 				$customer_group_id = $this->request->post['customer_group_id'];
 			} else {
 				$customer_group_id = $this->config->get('config_customer_group_id');
@@ -233,6 +247,7 @@ class ControllerCheckoutGuest extends Controller {
 		}
 
 		if (!$json) {
+			$pp_order->info('checkout/guest/save_   if(!$json)'.__Line__);	
 			$this->session->data['account'] = 'guest';
 
 			$this->session->data['guest']['customer_group_id'] = $customer_group_id;
@@ -293,6 +308,7 @@ class ControllerCheckoutGuest extends Controller {
 
 			if (!empty($this->request->post['shipping_address'])) {
 				$this->session->data['guest']['shipping_address'] = $this->request->post['shipping_address'];
+				$pp_order->info('shipping address found'.__Line__);
 			} else {
 				$this->session->data['guest']['shipping_address'] = false;
 			}

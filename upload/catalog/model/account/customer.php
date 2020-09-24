@@ -150,3 +150,4 @@ class ModelAccountCustomer extends Model {
 		return $query->row;
 	}			
 }
+

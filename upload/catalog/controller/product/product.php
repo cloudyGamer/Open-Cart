@@ -1,26 +1,39 @@
 <?php
+require_once DIR_STORAGE."vendor/autoload.php";
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
+
+
 class ControllerProductProduct extends Controller {
 	private $error = array();
 
 	public function index() {
+		
+		//addition
+		// Create the logger
+            $logger = new Logger('product.php');	
+            // Now add some handlers
+            $logger->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+            $logger->pushHandler(new FirePHPHandler());
+            ////////////
+            $logger->info('product index called'.__Line__);
+
 		$this->load->language('product/product');
 
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_home'),
-			'href' => $this->url->link('common/home')
+                    'text' => $this->language->get('text_home'),
+                    'href' => $this->url->link('common/home')
 		);
 
 		$this->load->model('catalog/category');
 
 		if (isset($this->request->get['path'])) {
 			$path = '';
-
 			$parts = explode('_', (string)$this->request->get['path']);
-
 			$category_id = (int)array_pop($parts);
-
 			foreach ($parts as $path_id) {
 				if (!$path) {
 					$path = $path_id;
@@ -40,7 +53,6 @@ class ControllerProductProduct extends Controller {
 
 			// Set the last category breadcrumb
 			$category_info = $this->model_catalog_category->getCategory($category_id);
-
 			if ($category_info) {
 				$url = '';
 
@@ -155,8 +167,18 @@ class ControllerProductProduct extends Controller {
 		}
 
 		$this->load->model('catalog/product');
-
+       
 		$product_info = $this->model_catalog_product->getProduct($product_id);
+                //*** men at work ***//
+                $product_info['description'] = html_entity_decode($product_info['description'], ENT_QUOTES, 'UTF-8');
+                
+                //*** men at work ***//
+		 //$logger->info('product id.  '.var_dump($product_info	).__Line__);
+        
+		//addition
+		$this->response->addHeader('Content-Type: application/json','Access-Control-Allow-Origin : *');
+		$this->response->setOutput(json_encode($product_info));
+		//////////
 
 		if ($product_info) {
 			$url = '';
@@ -445,8 +467,6 @@ class ControllerProductProduct extends Controller {
 			$data['content_bottom'] = $this->load->controller('common/content_bottom');
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['header'] = $this->load->controller('common/header');
-
-			$this->response->setOutput($this->load->view('product/product', $data));
 		} else {
 			$url = '';
 
@@ -503,11 +523,8 @@ class ControllerProductProduct extends Controller {
 				'href' => $this->url->link('product/product', $url . '&product_id=' . $product_id)
 			);
 
-			$this->document->setTitle($this->language->get('text_error'));
 
 			$data['continue'] = $this->url->link('common/home');
-
-			$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
 
 			$data['column_left'] = $this->load->controller('common/column_left');
 			$data['column_right'] = $this->load->controller('common/column_right');
@@ -516,7 +533,6 @@ class ControllerProductProduct extends Controller {
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['header'] = $this->load->controller('common/header');
 
-			$this->response->setOutput($this->load->view('error/not_found', $data));
 		}
 	}
 
@@ -622,6 +638,9 @@ class ControllerProductProduct extends Controller {
 		}
 
 		$product_info = $this->model_catalog_product->getProduct($product_id);
+                $logger->info('product info called with ID'.__Line__);
+
+		//////////
 		
 		$recurring_info = $this->model_catalog_product->getProfile($product_id, $recurring_id);
 
@@ -659,4 +678,39 @@ class ControllerProductProduct extends Controller {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
+        
+        public function getProductCategory(){
+            $logger = new Logger('product.php');	
+            // Now add some handlers
+            $logger->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+            $logger->pushHandler(new FirePHPHandler());
+       ////////////
+            $logger->info('getProductCategory ran'.__Line__);
+
+                $this->load->language('product/product');
+		$this->load->model('catalog/product');
+                if (isset($this->request->get['product_id'])) {
+			$product_id = $this->request->get['product_id'];
+                        $product_info = $this->model_catalog_product->getCategories($product_id);
+                        $category_id = $product_info[0]['category_id'];
+                        $logger->info('getProductCategory category_id'.$category_id.__Line__);
+                        //load in model to get category name
+                        $this->load->language('product/category');
+		        $this->load->model('catalog/category');
+                        //call fnc
+                        $category_info = $this->model_catalog_category->getCategory($category_id);
+                        $category_name = $category_info['name'];
+                        $json = array();
+                        $json['success'] = $this->language->get('text_success');
+                        $this->response->addHeader('Content-Type: application/json');
+		        $this->response->setOutput(json_encode($category_name));
+
+		} else {
+			$product_id = 0;
+                        $logger->info('getProductCategory no parameter passed'.__Line__);
+
+		}
+                
+            
+        }
 }

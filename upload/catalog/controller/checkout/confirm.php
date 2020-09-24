@@ -1,6 +1,19 @@
 <?php
+require_once DIR_STORAGE."vendor/autoload.php";
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
+
+
+
 class ControllerCheckoutConfirm extends Controller {
 	public function index() {
+
+		$confirmLogger = new Logger('my_logger');
+		// Now add some handlers
+		$confirmLogger->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+		$confirmLogger->pushHandler(new FirePHPHandler());
+		$confirmLogger->info('confirm.php index called');
 		$redirect = '';
 
 		if ($this->cart->hasShipping()) {
@@ -52,7 +65,7 @@ class ControllerCheckoutConfirm extends Controller {
 				break;
 			}
 		}
-
+                 //interesting - creates order data array
 		if (!$redirect) {
 			$order_data = array();
 
@@ -66,7 +79,7 @@ class ControllerCheckoutConfirm extends Controller {
 				'taxes'  => &$taxes,
 				'total'  => &$total
 			);
-
+                         //looks like the extension is called here
 			$this->load->model('setting/extension');
 
 			$sort_order = array();
@@ -298,7 +311,7 @@ class ControllerCheckoutConfirm extends Controller {
 			$order_data['currency_code'] = $this->session->data['currency'];
 			$order_data['currency_value'] = $this->currency->getValue($this->session->data['currency']);
 			$order_data['ip'] = $this->request->server['REMOTE_ADDR'];
-
+//interesting code - I think this is posting the data to payment people
 			if (!empty($this->request->server['HTTP_X_FORWARDED_FOR'])) {
 				$order_data['forwarded_ip'] = $this->request->server['HTTP_X_FORWARDED_FOR'];
 			} elseif (!empty($this->request->server['HTTP_CLIENT_IP'])) {
@@ -322,7 +335,7 @@ class ControllerCheckoutConfirm extends Controller {
 			$this->load->model('checkout/order');
 
 			$this->session->data['order_id'] = $this->model_checkout_order->addOrder($order_data);
-
+                        //interesting 2
 			$this->load->model('tool/upload');
 
 			$data['products'] = array();
@@ -406,12 +419,22 @@ class ControllerCheckoutConfirm extends Controller {
 					'text'  => $this->currency->format($total['value'], $this->session->data['currency'])
 				);
 			}
+			//addition///////////
+			// Create the logger
+			$confirmLogger = new Logger('my_logger');
+			// Now add some handlers
+			$confirmLogger->pushHandler(new StreamHandler('/home/customer/www/pauldowlingportfolio.com/{file path}', Logger::DEBUG));
+			$confirmLogger->pushHandler(new FirePHPHandler());
+
+			$stringifiedData = json_encode($data);
+			//working datadump to log
+                        $confirmLogger->info('this data dump works='.$stringifiedData);
 
 			$data['payment'] = $this->load->controller('extension/payment/' . $this->session->data['payment_method']['code']);
 		} else {
 			$data['redirect'] = $redirect;
 		}
-
+        
 		$this->response->setOutput($this->load->view('checkout/confirm', $data));
 	}
 }
